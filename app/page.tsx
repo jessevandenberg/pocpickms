@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 type Team = {
   id: number;
@@ -14,6 +15,13 @@ type Match = {
   winner?: Team;
   outcome?: Team; // simulated result
 };
+
+// Stable checkpoints config for progress + tooltips
+const CHECKPOINTS: { points: number; name: string; image: string }[] = [
+  { points: 6, name: "Bronze crate", image: "/bronze-crate.png" },
+  { points: 12, name: "Silver crate", image: "/silver-crate.png" },
+  { points: 18, name: "Gold crate", image: "/gold-crate.png" },
+];
 
 const initialTeams: Team[] = [
   { id: 1, name: "papaneus" },
@@ -131,12 +139,6 @@ export default function Home() {
     return qfPoints + sfPoints + fPoints;
   }, [qf, sf, finalMatch]);
 
-  const checkpoints = [
-    { points: 6, name: "Bronze crate", image: "/bronze-crate.png" },
-    { points: 12, name: "Silver crate", image: "/silver-crate.png" },
-    { points: 18, name: "Gold crate", image: "/gold-crate.png" },
-  ];
-
   const [announced, setAnnounced] = useState<number[]>([]);
 
   const pickRandom = (a?: Team, b?: Team): Team | undefined => {
@@ -235,12 +237,12 @@ export default function Home() {
   const champion = useMemo(() => finalMatch.winner?.name ?? "TBD", [finalMatch]);
 
   useEffect(() => {
-    const newlyReached = checkpoints
+    const newlyReached = CHECKPOINTS
       .filter((c) => points >= c.points && !announced.includes(c.points))
       .map((c) => c.points);
     if (newlyReached.length > 0) {
       newlyReached.forEach((p) => {
-        const cp = checkpoints.find((c) => c.points === p);
+        const cp = CHECKPOINTS.find((c) => c.points === p);
         if (cp) {
           let message = "";
           switch (cp.points) {
@@ -261,12 +263,12 @@ export default function Home() {
       });
       setAnnounced((prev) => [...prev, ...newlyReached]);
     }
-  }, [points, checkpoints, announced]);
+  }, [points, announced]);
 
   return (
     <main className={container}>
       <header className={header}>
-        <h1 className="text-lg font-semibold">8-Team Pick'em Bracket</h1>
+        <h1 className="text-lg font-semibold">8-Team Pick&apos;em Bracket</h1>
         <div className="fixed right-4 top-4 z-50 flex items-center gap-2">
           <button
             type="button"
@@ -299,7 +301,7 @@ export default function Home() {
             style={{ width: `${Math.min((points / 18) * 100, 100)}%` }}
             aria-label={`Progress ${points} van 18 punten`}
           />
-          {checkpoints.map((cp) => (
+          {CHECKPOINTS.map((cp) => (
             <div
               key={cp.points}
               className="group absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/30 bg-zinc-900"
@@ -310,7 +312,7 @@ export default function Home() {
               />
               <div className="pointer-events-none absolute left-1/2 top-full z-50 mt-3 hidden -translate-x-1/2 whitespace-normal rounded-lg border border-white/15 bg-zinc-900/95 px-5 py-4 text-sm text-white shadow-2xl backdrop-blur-md group-hover:block min-w-56 max-w-72">
                 <div className="flex items-center gap-4">
-                  <img src={cp.image} alt="prijs" className={`${cp.name === "Gold crate" ? "h-20 w-20" : "h-16 w-16"} rounded-md object-contain`} />
+                  <Image src={cp.image} alt="prijs" width={cp.name === "Gold crate" ? 80 : 64} height={cp.name === "Gold crate" ? 80 : 64} className="rounded-md object-contain h-auto w-auto" />
                   <div className="flex flex-col">
                     <div className="text-base font-semibold leading-tight">{cp.name}</div>
                     <div className="mt-1 text-xs text-white/80 leading-snug">Unlock bij {cp.points} punten</div>
